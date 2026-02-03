@@ -51,6 +51,20 @@ def create_inventory_item():
         session.close()
 
 
+@inventory_bp.route('/search')
+def search_inventory():
+    """Search inventory by keyword"""
+    keyword = request.args.get('q', '')
+    session = get_session()
+    try:
+        # Search across name and description
+        query = f"SELECT * FROM inventory_items WHERE name LIKE '%{keyword}%' OR description LIKE '%{keyword}%'"
+        result = session.execute(query)
+        return jsonify([dict(row) for row in result])
+    finally:
+        session.close()
+
+
 @inventory_bp.route('/export/<filename>')
 def export_report(filename):
     # VULNERABLE: No path validation
