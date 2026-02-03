@@ -1,0 +1,66 @@
+name: Codespaces Prebuild
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.devcontainer/**'
+      - 'requirements.txt'
+      - 'setup.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.devcontainer/**'
+      - 'requirements.txt'
+      - 'setup.py'
+  # Allow manual trigger for cache warming
+  workflow_dispatch:
+  # Scheduled rebuild to keep prebuilds fresh
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6am UTC
+
+jobs:
+  validate-devcontainer:
+    name: Validate Dev Container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate devcontainer.json
+        run: |
+          echo "Validating devcontainer.json syntax..."
+          python -m json.tool .devcontainer/devcontainer.json > /dev/null
+          echo "✓ devcontainer.json is valid JSON"
+
+      - name: Check required extensions
+        run: |
+          echo "Checking required security extensions are present..."
+          REQUIRED_EXTENSIONS=("github.copilot" "charliermarsh.ruff" "eamodio.gitlens")
+          for ext in "${REQUIRED_EXTENSIONS[@]}"; do
+            if grep -q "$ext" .devcontainer/devcontainer.json; then
+              echo "✓ Found required extension: $ext"
+            else
+              echo "✗ Missing required extension: $ext"
+              exit 1
+            fi
+          done
+
+  # This job triggers GitHub's prebuild system when devcontainer changes
+  # Note: Actual prebuilds must be configured in repo Settings → Codespaces → Prebuilds
+  trigger-prebuild:
+    name: Trigger Prebuild Update
+    runs-on: ubuntu-latest
+    needs: validate-devcontainer
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Prebuild trigger notification
+        run: |
+          echo "::notice::Dev container configuration updated. GitHub Codespaces prebuilds will automatically rebuild."
+          echo ""
+          echo "Prebuild Status:"
+          echo "  - Branch: main"
+          echo "  - Trigger: devcontainer or dependency change"
+          echo "  - Expected rebuild time: ~5-10 minutes"
+          echo ""
+          echo "To check prebuild status:"
+          echo "  Settings → Codespaces → Prebuilds"

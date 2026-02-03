@@ -1,0 +1,37 @@
+# CODEOWNERS - Define code ownership for review requirements
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ============================================================================
+# PLATFORM & SECURITY CONFIGURATION
+# These files define the development environment and security policies.
+# Changes require Platform Team approval to prevent:
+#   - Disabling security tools
+#   - Modifying approved dependencies
+#   - Changing CI/CD security checks
+# ============================================================================
+
+# Dev Container configuration - locked to platform team
+# Prevents contractors from modifying development environment
+.devcontainer/                     @shariqh
+
+# CI/CD workflows - security-critical
+.github/workflows/                 @shariqh
+
+# Dependency files - require security review
+requirements.txt                   @shariqh
+setup.py                          @shariqh
+
+# GitHub configuration
+.github/CODEOWNERS                @shariqh
+.github/dependabot.yml            @shariqh
+
+# ============================================================================
+# APPLICATION CODE
+# Standard review process - any team member can approve
+# ============================================================================
+
+# Source code - development team
+# src/                             @acme-corp/inventory-team
+
+# Tests - development team
+# tests/                           @acme-corp/inventory-team
