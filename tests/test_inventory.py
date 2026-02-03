@@ -1,11 +1,21 @@
+import os
 import pytest
+
+# Set test database before importing app
+os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+
 from src.app import create_app
+from src.models import Base, get_engine, init_db
 
 
 @pytest.fixture
 def client():
     app = create_app()
     app.config['TESTING'] = True
+
+    # Create tables for testing
+    Base.metadata.create_all(get_engine())
+
     with app.test_client() as client:
         yield client
 

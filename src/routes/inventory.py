@@ -1,14 +1,14 @@
 import os
 from flask import Blueprint, jsonify, request, send_file
 
-from ..models import Session, InventoryItem
+from ..models import get_session, InventoryItem
 
 inventory_bp = Blueprint('inventory', __name__)
 
 
 @inventory_bp.route('/inventory')
 def list_inventory():
-    session = Session()
+    session = get_session()
     try:
         items = session.query(InventoryItem).all()
         return jsonify([item.to_dict() for item in items])
@@ -18,7 +18,7 @@ def list_inventory():
 
 @inventory_bp.route('/inventory/<int:item_id>')
 def get_inventory_item(item_id):
-    session = Session()
+    session = get_session()
     try:
         item = session.query(InventoryItem).filter_by(id=item_id).first()
         if item:
@@ -30,7 +30,7 @@ def get_inventory_item(item_id):
 
 @inventory_bp.route('/inventory', methods=['POST'])
 def create_inventory_item():
-    session = Session()
+    session = get_session()
     try:
         data = request.get_json()
         item = InventoryItem(

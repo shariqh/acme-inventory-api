@@ -54,10 +54,26 @@ class User(Base):
         }
 
 
-# Database setup
-engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind=engine)
+# Database setup - lazy initialization for testing
+engine = None
+Session = None
+
+
+def get_engine():
+    global engine
+    if engine is None:
+        import os
+        db_url = os.environ.get('DATABASE_URL', DATABASE_URL)
+        engine = create_engine(db_url)
+    return engine
+
+
+def get_session():
+    global Session
+    if Session is None:
+        Session = sessionmaker(bind=get_engine())
+    return Session()
 
 
 def init_db():
-    Base.metadata.create_all(engine)
+    Base.metadata.create_all(get_engine())
